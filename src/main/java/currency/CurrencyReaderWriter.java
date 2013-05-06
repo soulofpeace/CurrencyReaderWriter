@@ -35,8 +35,13 @@ public class CurrencyReaderWriter {
     }
 
     public CurrencyReaderWriter(String fileName) throws IOException {
-        this.currencyMap = this.initializeCurrencyMap(this.currencyMap, fileName);
         this.exchangeRate = new ExchangeRate();
+        this.currencyMap = this.initializeCurrencyMap(this.currencyMap, fileName);
+    }
+
+    public CurrencyReaderWriter(String fileName, ExchangeRate exchangeRate) throws IOException {
+        this.exchangeRate = exchangeRate;
+        this.currencyMap = this.initializeCurrencyMap(this.currencyMap, fileName);
     }
 
 
@@ -53,6 +58,14 @@ public class CurrencyReaderWriter {
         }
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.MINUTES);
+    }
+
+    public Map<String, Double> getCurrencyMap() {
+        return currencyMap;
+    }
+
+    public void setCurrencyMap(Map<String, Double> currencyMap) {
+        this.currencyMap = currencyMap;
     }
 
     private Map<String, Double> initializeCurrencyMap(Map<String, Double> currencyMap, String fileName) throws IOException {
@@ -72,7 +85,7 @@ public class CurrencyReaderWriter {
             String[] tokens = raw.split(" ");
             String currencyCode = tokens[0];
             if (!exchangeRate.isValidCurrencyCode(currencyCode)) {
-                System.out.println("Not Valid currency Code");
+                System.out.println("Not Valid Currency Code: "+currencyCode);
                 return currencyMap;
             }
             Double amount = Double.parseDouble(tokens[1]);
@@ -97,13 +110,6 @@ public class CurrencyReaderWriter {
         }
     }
 
-    public Map<String, Double> getCurrencyMap() {
-        return currencyMap;
-    }
-
-    public void setCurrencyMap(Map<String, Double> currencyMap) {
-        this.currencyMap = currencyMap;
-    }
 
     private PrinterThread createNewPrinterThread(String currencyCode) {
         PrinterThread printerThread = new PrinterThread(currencyCode, this.currencyMap, this.exchangeRate);

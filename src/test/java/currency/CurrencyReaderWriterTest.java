@@ -36,7 +36,9 @@ public class CurrencyReaderWriterTest {
 
     @Test
     public void testInitializeCurrencyMap() throws IOException {
-        CurrencyReaderWriter currencyReaderWriter = new CurrencyReaderWriter("src/test/resources/TestInput.txt");
+        ExchangeRate exchangeRate = new ExchangeRate("src/test/resources/exchange_rates.json");
+        CurrencyReaderWriter currencyReaderWriter = new CurrencyReaderWriter("src/test/resources/TestInput.txt",
+                exchangeRate);
         Map<String, Double> currencyMap = currencyReaderWriter.getCurrencyMap();
         Assert.assertEquals(currencyMap.get("USD"), new Double(900.0));
         Assert.assertEquals(currencyMap.get("HKD"), new Double(300.0));
@@ -51,7 +53,7 @@ public class CurrencyReaderWriterTest {
             put("MYR", 0.0);
 
         }};
-        ExchangeRate rates = new ExchangeRate();
+        ExchangeRate rates = new ExchangeRate("src/test/resources/exchange_rates.json");
         PrinterThread printerThread = new PrinterThread("USD", map, rates);
         PrinterThread printerThread2 = new PrinterThread("MYR", map, rates);
         PrinterThread printerThread3 = new PrinterThread("SGD", map, rates);
@@ -74,6 +76,19 @@ public class CurrencyReaderWriterTest {
        Assert.assertEquals(map.get("USD"), new Double(800.0));
        Assert.assertEquals(map.get("SGD"), new Double(500.0));
    }
+
+    @Test
+    public void testInvalidUserInput() throws IOException, InterruptedException {
+        this.setUpStreams();
+        CurrencyReaderWriter readerWriter = new CurrencyReaderWriter();
+        ByteArrayInputStream in = new ByteArrayInputStream("ABC 200\nquit".getBytes());
+        System.setIn(in);
+        readerWriter.run();
+        Map<String, Double> map = readerWriter.getCurrencyMap();
+        String output = outContent.toString();
+        Assert.assertEquals(output,  "Not Valid Currency Code: ABC\n");
+        this.cleanUpStreams();
+    }
 
 
 

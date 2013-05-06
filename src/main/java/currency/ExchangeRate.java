@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -23,6 +24,25 @@ public class ExchangeRate {
 
     public ExchangeRate() throws IOException {
         InputStream inputStream = getClass().getResourceAsStream("/exchange_rates.json");
+        this.initializeRates(inputStream);
+    }
+
+    public ExchangeRate(String exchangeRateFile) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(exchangeRateFile);
+        this.initializeRates(fileInputStream);
+
+    }
+
+    public boolean isValidCurrencyCode(String currencyCode){
+        return this.rates.keySet().contains(currencyCode);
+    }
+
+    public Double convert(String currencyCode, Double amount){
+        Double rate = rates.get(currencyCode);
+        return amount/rate;
+    }
+
+    private void initializeRates(InputStream inputStream) throws IOException {
         String raw = new Scanner(inputStream).useDelimiter("\\A").next();
         ObjectMapper mapper = new ObjectMapper();
         Map rawMap = mapper.readValue(raw, Map.class);
@@ -37,14 +57,5 @@ public class ExchangeRate {
             }
 
         }
-    }
-
-    public boolean isValidCurrencyCode(String currencyCode){
-        return this.rates.keySet().contains(currencyCode);
-    }
-
-    public Double convert(String currencyCode, Double amount){
-        Double rate = rates.get(currencyCode);
-        return amount/rate;
     }
 }
